@@ -179,15 +179,18 @@ $sshConfigPath = "$sshDir\config"
 $newBlock = @"
 
 # ── Personal GitHub (added by Setup-MultipleGitAccounts.ps1) ──
+# Uses ssh.github.com:443 to work on networks where port 22 is blocked.
 Host github-personal
-  HostName github.com
+  HostName ssh.github.com
+  Port 443
   User git
   IdentityFile ~/.ssh/id_ed25519_personal
   IdentitiesOnly yes
 
 # ── Work GitHub / GHE ──
 Host github-work
-  HostName $workHostname
+  HostName ssh.github.com
+  Port 443
   User git
   IdentityFile ~/.ssh/id_ed25519_work
   IdentitiesOnly yes
@@ -327,13 +330,17 @@ Write-Host @"
   Azure DevOps:
     git clone git@azure-devops:ORG/PROJECT/_git/REPO
 
-  Update existing remote:
-    git remote set-url origin git@github-work:ORG/repo.git
+  Switch an existing HTTPS remote to SSH:
+    git remote set-url origin git@github-personal:USERNAME/repo.git
 
   Test connections:
     ssh -T git@github-personal
     ssh -T git@github-work
     ssh -T git@azure-devops
+
+  IMPORTANT: Always clone/push via the SSH alias above.
+  Never use the https:// URL from GitHub - it bypasses SSH
+  and triggers the credential manager popup.
 "@ -ForegroundColor White
 
 Write-Host "`n  ✔  Setup complete!`n" -ForegroundColor Green

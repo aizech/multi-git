@@ -45,14 +45,16 @@ Create or edit `~/.ssh/config` (on Windows: `%USERPROFILE%\.ssh\config`):
 ```
 # Personal GitHub
 Host github-personal
-  HostName github.com
+  HostName ssh.github.com
+  Port 443
   User git
   IdentityFile ~/.ssh/id_ed25519_personal
   IdentitiesOnly yes
 
 # Work GitHub / GitHub Enterprise
 Host github-work
-  HostName github.com
+  HostName ssh.github.com
+  Port 443
   User git
   IdentityFile ~/.ssh/id_ed25519_work
   IdentitiesOnly yes
@@ -65,7 +67,7 @@ Host azure-devops
   IdentitiesOnly yes
 ```
 
-> ⚠️ `HostName` must be a **bare hostname only** (e.g. `github.com`). Do not enter a full URL like `https://github.com/org/` — SSH will fail silently with the wrong value.
+> ⚠️ GitHub SSH uses `ssh.github.com` on **port 443** instead of `github.com` on port 22. Port 22 is frequently blocked on corporate or restricted networks; port 443 (HTTPS) is almost always open. Azure DevOps does not offer this fallback and uses port 22 only.
 
 Test the connections:
 
@@ -74,6 +76,8 @@ ssh -T git@github-personal
 ssh -T git@github-work
 ssh -T git@azure-devops
 ```
+
+A successful GitHub response looks like: `Hi username! You've successfully authenticated...`
 
 ## 3. Set Git identity per folder
 
@@ -120,6 +124,8 @@ Keep your repositories in those matching folders so Git applies the right identi
 
 ## 4. Clone repositories with the right host alias
 
+Always clone using the SSH host alias — **never** use the `https://` URL from GitHub, as that bypasses SSH and triggers the credential manager.
+
 ```bash
 # Personal GitHub
 git clone git@github-personal:username/personal-repo.git
@@ -131,10 +137,14 @@ git clone git@github-work:company/work-repo.git
 git clone git@azure-devops:company/project/_git/repo.git
 ```
 
-For an existing repository, update the remote:
+For an **existing** repository cloned over HTTPS, switch it to SSH:
 
 ```bash
-git remote set-url origin git@github-work:company/work-repo.git
+# Check current remote
+git remote -v
+
+# Switch to SSH
+git remote set-url origin git@github-personal:username/repo.git
 ```
 
 ## 5. VS Code notes
