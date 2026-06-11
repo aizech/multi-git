@@ -126,9 +126,11 @@ Then add conditional includes to your global Git config (`~/.gitconfig`):
 
 Keep your repositories in those matching folders so Git applies the right identity automatically.
 
-## 4. Clone repositories with the right host alias
+## 4. Use SSH remotes — always
 
-Always clone using the SSH host alias — **never** use the `https://` URL from GitHub, as that bypasses SSH and triggers the credential manager.
+The credential manager popup appears whenever a remote uses `https://`. Always use the SSH host alias instead.
+
+### Cloning an existing repository
 
 ```bash
 # Personal GitHub
@@ -141,14 +143,28 @@ git clone git@github-work:company/work-repo.git
 git clone git@azure-devops:company/project/_git/repo.git
 ```
 
-For an **existing** repository cloned over HTTPS, switch it to SSH:
+### Pushing a new local repository
+
+When GitHub shows you an HTTPS URL to add as a remote — **do not use it**. Use the SSH alias instead:
 
 ```bash
-# Check current remote
+git init
+git add .
+git commit -m "initial"
+git branch -M main
+# Use SSH alias, not the https:// URL from GitHub
+git remote add origin git@github-personal:username/new-repo.git
+git push -u origin main
+```
+
+### Fixing an existing HTTPS remote
+
+```bash
+# Check what you have
 git remote -v
 
-# Switch to SSH
-git remote set-url origin git@github-personal:username/repo.git
+# Replace https:// with SSH alias
+git remote set-url origin git@github-work:company/repo.git
 ```
 
 ## 5. VS Code notes
