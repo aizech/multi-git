@@ -5,15 +5,19 @@ You can use multiple accounts for GitHub, GitHub Enterprise, and Azure DevOps in
 ## 1. Create separate SSH keys
 
 ```bash
-# Personal GitHub
-ssh-keygen -t ed25519 -C "personal@email.com" -f ~/.ssh/id_ed25519_personal
+# Personal GitHub  (-C is just a label; use your no-reply email for GitHub accounts)
+ssh-keygen -t ed25519 -C "{ID}+username@users.noreply.github.com" -f ~/.ssh/id_ed25519_personal -N ""
 
 # Work GitHub / GitHub Enterprise
-ssh-keygen -t ed25519 -C "work@company.com" -f ~/.ssh/id_ed25519_work
+ssh-keygen -t ed25519 -C "work@company.com" -f ~/.ssh/id_ed25519_work -N ""
 
 # Azure DevOps
-ssh-keygen -t ed25519 -C "azure@email.com" -f ~/.ssh/id_ed25519_azure
+ssh-keygen -t ed25519 -C "azure@email.com" -f ~/.ssh/id_ed25519_azure -N ""
 ```
+
+> `-N ""` creates the key with **no passphrase**. The key file itself is the secret — protect it with filesystem permissions. If you prefer a passphrase for extra security, omit `-N ""` and enter one when prompted; you will then need to run `ssh-add` once per login session (the agent remembers it until reboot).
+
+> To **regenerate** an existing key (e.g. you forgot the passphrase), just re-run the command above — `ssh-keygen` will prompt before overwriting.
 
 Add the keys to your SSH agent:
 
@@ -193,7 +197,9 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\Setup-MultipleGitAccounts.ps1
 ```
 
-Then run the ssh-agent block from step 1 in an **elevated** PowerShell to finish. All operations are idempotent — safe to re-run.
+Then run the ssh-agent block from step 1 in an **elevated** PowerShell to finish.
+
+> If keys already exist the script skips regeneration. To force new keys, delete the old files first (`~/.ssh/id_ed25519_personal` and `.pub`) or re-run `ssh-keygen` manually as shown in step 1.
 
 ## Quick reference
 

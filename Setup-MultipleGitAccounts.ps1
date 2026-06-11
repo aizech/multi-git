@@ -129,12 +129,18 @@ if (-not (Test-Path $sshDir)) {
 
 function New-SshKey([string]$keyFile, [string]$email, [string]$label) {
     if (Test-Path $keyFile) {
-        Write-Warn "$label key already exists at $keyFile – skipping generation."
-    } else {
-        Write-Step "Generating $label key"
-        ssh-keygen -t ed25519 -C $email -f $keyFile -N '""'
-        Write-OK "$label key created"
+        Write-Warn "$label key already exists at $keyFile"
+        $overwrite = Read-Host "  Regenerate it? This replaces the existing key (y/N)"
+        if ($overwrite -notmatch '^[Yy]') {
+            Write-Info "Keeping existing $label key."
+            return
+        }
+        Remove-Item $keyFile -Force
+        Remove-Item "$keyFile.pub" -Force -ErrorAction SilentlyContinue
     }
+    Write-Step "Generating $label key (no passphrase)"
+    ssh-keygen -t ed25519 -C $email -f $keyFile -N ""
+    Write-OK "$label key created"
 }
 
 New-SshKey $keyPersonal $personalEmail "Personal GitHub"
