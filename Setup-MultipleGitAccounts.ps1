@@ -104,8 +104,8 @@ Write-Host "`n--- Azure DevOps ---" -ForegroundColor Magenta
 $azureName     = Prompt-Input "  Full name (commits)"
 $azureEmail    = Prompt-Input "  Email address"
 
-Write-Host "`n--- Work-Public GitHub (bertrandt-public org) ---" -ForegroundColor Magenta
-Write-Info "Separate GitHub user account for the bertrandt-public organisation."
+Write-Host "`n--- Work-Public GitHub (company-public org) ---" -ForegroundColor Magenta
+Write-Info "Separate GitHub user account for the companycompany-public organisation."
 Write-Info "Uses its own SSH key (id_ed25519_work_public)."
 $workPublicName  = Prompt-Input "  Full name (commits)"
 $workPublicEmail = Prompt-Input "  Email address"
@@ -154,7 +154,7 @@ function New-SshKey([string]$keyFile, [string]$email, [string]$label) {
 New-SshKey $keyPersonal    $personalEmail    "Personal GitHub"
 New-SshKey $keyWork        $workEmail        "Work GitHub"
 New-SshKey $keyAzure       $azureEmail       "Azure DevOps"
-New-SshKey $keyWorkPublic  $workPublicEmail  "Work-Public GitHub (bertrandt-public)"
+New-SshKey $keyWorkPublic  $workPublicEmail  "Work-Public GitHub (company-public)"
 
 # ── Step 2: SSH Agent ─────────────────────────────────────────────────────────
 
@@ -211,7 +211,7 @@ Host github-work
   IdentityFile ~/.ssh/id_ed25519_work
   IdentitiesOnly yes
 
-# ── Work-Public GitHub (bertrandt-public org, separate user) ──
+# ── Work-Public GitHub (company-public org, separate user) ──
 Host github-work-public
   HostName ssh.github.com
   Port 443
@@ -335,7 +335,7 @@ Write-Host "`nCopy each public key below and add it in the platform's SSH key se
 foreach ($item in @(
     @{ Label = 'Personal GitHub   → https://github.com/settings/ssh/new';               Key = "$keyPersonal.pub" },
     @{ Label = 'Work GitHub       → https://github.com/settings/ssh/new (or GHE)';      Key = "$keyWork.pub" },
-    @{ Label = 'Work-Public GitHub → https://github.com/settings/ssh/new (btag account)'; Key = "$keyWorkPublic.pub" },
+    @{ Label = 'Work-Public GitHub → https://github.com/settings/ssh/new (company account)'; Key = "$keyWorkPublic.pub" },
     @{ Label = 'Azure DevOps      → https://dev.azure.com → User Settings → SSH';     Key = "$keyAzure.pub" }
 )) {
     Write-Host "  $($item.Label)" -ForegroundColor Cyan
@@ -358,8 +358,8 @@ Write-Host @"
   Work GitHub / GHE:
     git clone git@github-work:ORG/repo.git
 
-  Work-Public GitHub (bertrandt-public org):
-    git clone git@github-work-public:bertrandt-public/repo.git
+  Work-Public GitHub (company-public org):
+    git clone git@github-work-public:company-public/repo.git
 
   Azure DevOps:
     git clone git@azure-devops:ORG/PROJECT/_git/REPO

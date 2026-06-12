@@ -63,7 +63,7 @@ Host github-work
   IdentityFile ~/.ssh/id_ed25519_work
   IdentitiesOnly yes
 
-# Work-Public GitHub (bertrandt-public org, separate GitHub user)
+# Work-Public GitHub (company-public org, separate GitHub user)
 Host github-work-public
   HostName ssh.github.com
   Port 443
@@ -134,12 +134,12 @@ Then add conditional includes to your global Git config (`~/.gitconfig`):
   path = ~/.gitconfig.work-public
 ```
 
-**`~/.gitconfig.work-public`** — separate GitHub user for the `bertrandt-public` org:
+**`~/.gitconfig.work-public`** — separate GitHub user for the `company-public` org:
 
 ```ini
 [user]
   name = Your Name
-  email = you@bertrandt.com
+  email = you@company.com
 ```
 
 > On Windows use forward slashes in `gitdir` paths and always include the trailing slash, e.g. `gitdir:C:/Users/you/projects/work-public/`.
@@ -159,8 +159,8 @@ git clone git@github-personal:username/personal-repo.git
 # Work GitHub / GitHub Enterprise
 git clone git@github-work:company/work-repo.git
 
-# Work-Public GitHub (bertrandt-public org)
-git clone git@github-work-public:bertrandt-public/repo.git
+# Work-Public GitHub (company-public org)
+git clone git@github-work-public:company-public/repo.git
 
 # Azure DevOps
 git clone git@azure-devops:company/project/_git/repo.git
@@ -246,5 +246,5 @@ Then run the ssh-agent block from step 1 in an **elevated** PowerShell to finish
 |---|---|---|
 | Personal GitHub | `github-personal` | `git@github-personal:user/repo.git` |
 | Work GitHub / GHE | `github-work` | `git@github-work:org/repo.git` |
-| Work-Public GitHub | `github-work-public` | `git@github-work-public:bertrandt-public/repo.git` |
+| Work-Public GitHub | `github-work-public` | `git@github-work-public:company-public/repo.git` |
 | Azure DevOps | `azure-devops` | `git@azure-devops:org/project/_git/repo.git` |

@@ -33,7 +33,7 @@ Git picks the right identity based on which folder a repo lives in:
   personal/     →  ~/.gitconfig.personal      (GitHub no-reply email, gh-username)
   work/         →  ~/.gitconfig.work          (work email)
   azure/        →  ~/.gitconfig.azure         (Azure DevOps email)
-  work-public/  →  ~/.gitconfig.work-public   (GitHub no-reply email, public-gh-username)
+  work-public/  →  ~/.gitconfig.work-public   (GitHub no-reply email, work-public-gh-username)
 ```
 
 SSH host aliases (`github-personal`, `github-work`, `github-work-public`, `azure-devops`) ensure the correct key is used for each remote. Both GitHub aliases route through `ssh.github.com:443` to work on networks where port 22 is blocked.
