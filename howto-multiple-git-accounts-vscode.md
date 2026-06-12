@@ -63,6 +63,15 @@ Host github-work
   IdentityFile ~/.ssh/id_ed25519_work
   IdentitiesOnly yes
 
+# Bertrandt Public GitHub (bertrandt-public org, accessed via personal aizech account)
+# Reuses the personal key — no new key needed.
+Host github-btag-public
+  HostName ssh.github.com
+  Port 443
+  User git
+  IdentityFile ~/.ssh/id_ed25519_personal
+  IdentitiesOnly yes
+
 # Azure DevOps
 Host azure-devops
   HostName vs-ssh.visualstudio.com
@@ -82,6 +91,8 @@ ssh -T git@azure-devops
 ```
 
 A successful GitHub response looks like: `Hi username! You've successfully authenticated...`
+
+> `github-btag-public` reuses the personal key — `ssh -T git@github-personal` covers both.
 
 ## 3. Set Git identity per folder
 
@@ -120,9 +131,20 @@ Then add conditional includes to your global Git config (`~/.gitconfig`):
 
 [includeIf "gitdir:~/projects/azure/"]
   path = ~/.gitconfig.azure
+
+[includeIf "gitdir:~/projects/btag-public/"]
+  path = ~/.gitconfig.btag-public
 ```
 
-> On Windows use forward slashes in `gitdir` paths and always include the trailing slash, e.g. `gitdir:C:/Users/you/projects/work/`.
+**`~/.gitconfig.btag-public`** — same identity as personal (same GitHub account `aizech`):
+
+```ini
+[user]
+  name = aizech
+  email = {ID}+username@users.noreply.github.com
+```
+
+> On Windows use forward slashes in `gitdir` paths and always include the trailing slash, e.g. `gitdir:C:/Users/you/projects/btag-public/`.
 
 Keep your repositories in those matching folders so Git applies the right identity automatically.
 
@@ -138,6 +160,9 @@ git clone git@github-personal:username/personal-repo.git
 
 # Work GitHub / GitHub Enterprise
 git clone git@github-work:company/work-repo.git
+
+# Bertrandt Public GitHub
+git clone git@github-btag-public:bertrandt-public/repo.git
 
 # Azure DevOps
 git clone git@azure-devops:company/project/_git/repo.git
@@ -223,4 +248,5 @@ Then run the ssh-agent block from step 1 in an **elevated** PowerShell to finish
 |---|---|---|
 | Personal GitHub | `github-personal` | `git@github-personal:user/repo.git` |
 | Work GitHub / GHE | `github-work` | `git@github-work:org/repo.git` |
+| Bertrandt Public GitHub | `github-btag-public` | `git@github-btag-public:bertrandt-public/repo.git` |
 | Azure DevOps | `azure-devops` | `git@azure-devops:org/project/_git/repo.git` |

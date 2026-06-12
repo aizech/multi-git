@@ -30,12 +30,13 @@ Git picks the right identity based on which folder a repo lives in:
 
 ```
 ~/projects/
-  personal/   →  ~/.gitconfig.personal  (GitHub no-reply email)
-  work/       →  ~/.gitconfig.work      (work email)
-  azure/      →  ~/.gitconfig.azure     (Azure DevOps email)
+  personal/     →  ~/.gitconfig.personal      (GitHub no-reply email, aizech)
+  work/         →  ~/.gitconfig.work          (work email)
+  azure/        →  ~/.gitconfig.azure         (Azure DevOps email)
+  btag-public/  →  ~/.gitconfig.btag-public   (GitHub no-reply email, aizech — reuses personal key)
 ```
 
-SSH host aliases (`github-personal`, `github-work`, `azure-devops`) ensure the correct key is used for each remote. Both GitHub aliases route through `ssh.github.com:443` to work on networks where port 22 is blocked.
+SSH host aliases (`github-personal`, `github-work`, `github-btag-public`, `azure-devops`) ensure the correct key is used for each remote. Both GitHub aliases route through `ssh.github.com:443` to work on networks where port 22 is blocked.
 
 > **Always use the SSH alias for remotes** — both when cloning (`git clone git@github-personal:user/repo.git`) and when adding a remote to a new repo (`git remote add origin git@github-personal:user/repo.git`). The `https://` URL GitHub shows by default bypasses SSH entirely and triggers the credential manager popup.
 

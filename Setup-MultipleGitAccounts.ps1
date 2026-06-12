@@ -104,19 +104,27 @@ Write-Host "`n--- Azure DevOps ---" -ForegroundColor Magenta
 $azureName     = Prompt-Input "  Full name (commits)"
 $azureEmail    = Prompt-Input "  Email address"
 
+Write-Host "`n--- Bertrandt Public GitHub (bertrandt-public org) ---" -ForegroundColor Magenta
+Write-Info "Accessed via your personal GitHub account (reuses the personal SSH key)."
+Write-Info "Use the same no-reply email as your personal account."
+$btagPublicName  = Prompt-Input "  Full name (commits)" "aizech"
+$btagPublicEmail = Prompt-Input "  Email address (no-reply recommended)"
+
 Write-Host "`n--- Project Folders ---" -ForegroundColor Magenta
 Write-Info "Git uses folder paths to decide which identity to use."
 $defaultProjects = "$env:USERPROFILE\projects"
-$personalDir = Prompt-Input "  Personal repos root folder" "$defaultProjects\personal"
-$workDir     = Prompt-Input "  Work repos root folder"     "$defaultProjects\work"
-$azureDir    = Prompt-Input "  Azure repos root folder"    "$defaultProjects\azure"
+$personalDir    = Prompt-Input "  Personal repos root folder"        "$defaultProjects\personal"
+$workDir        = Prompt-Input "  Work repos root folder"            "$defaultProjects\work"
+$azureDir       = Prompt-Input "  Azure repos root folder"           "$defaultProjects\azure"
+$btagPublicDir  = Prompt-Input "  Bertrandt-public repos root folder" "$defaultProjects\btag-public"
 
 # ── SSH key paths ─────────────────────────────────────────────────────────────
 
-$sshDir        = "$env:USERPROFILE\.ssh"
-$keyPersonal   = "$sshDir\id_ed25519_personal"
-$keyWork       = "$sshDir\id_ed25519_work"
-$keyAzure      = "$sshDir\id_ed25519_azure"
+$sshDir          = "$env:USERPROFILE\.ssh"
+$keyPersonal     = "$sshDir\id_ed25519_personal"
+$keyWork         = "$sshDir\id_ed25519_work"
+$keyAzure        = "$sshDir\id_ed25519_azure"
+# btag-public reuses the personal key (same GitHub account)
 
 # ── Step 1: Create .ssh directory ─────────────────────────────────────────────
 
@@ -146,6 +154,7 @@ function New-SshKey([string]$keyFile, [string]$email, [string]$label) {
 New-SshKey $keyPersonal $personalEmail "Personal GitHub"
 New-SshKey $keyWork     $workEmail     "Work GitHub"
 New-SshKey $keyAzure    $azureEmail    "Azure DevOps"
+Write-Info "Bertrandt-public GitHub reuses the personal SSH key – no new key generated."
 
 # ── Step 2: SSH Agent ─────────────────────────────────────────────────────────
 
@@ -165,6 +174,7 @@ try {
         ssh-add $keyPersonal 2>$null
         ssh-add $keyWork     2>$null
         ssh-add $keyAzure    2>$null
+        # keyPersonal already covers btag-public (same key)
         Write-OK "Keys added to ssh-agent"
     } else {
         Write-Warn "Windows OpenSSH ssh-agent service not found."
@@ -201,6 +211,14 @@ Host github-work
   IdentityFile ~/.ssh/id_ed25519_work
   IdentitiesOnly yes
 
+# ── Bertrandt Public GitHub (reuses personal key) ──
+Host github-btag-public
+  HostName ssh.github.com
+  Port 443
+  User git
+  IdentityFile ~/.ssh/id_ed25519_personal
+  IdentitiesOnly yes
+
 # ── Azure DevOps ──
 Host azure-devops
   HostName vs-ssh.visualstudio.com
@@ -211,7 +229,7 @@ Host azure-devops
 
 $existingConfig = if (Test-Path $sshConfigPath) { Get-Content $sshConfigPath -Raw } else { '' }
 
-if ($existingConfig -match 'github-personal' -or $existingConfig -match 'github-work' -or $existingConfig -match 'azure-devops') {
+if ($existingConfig -match 'github-personal' -or $existingConfig -match 'github-work' -or $existingConfig -match 'azure-devops' -or $existingConfig -match 'github-btag-public') {
     Write-Warn "Host aliases already present in $sshConfigPath – skipping SSH config update."
     Write-Info "Review the file manually if needed: $sshConfigPath"
 } else {
@@ -223,9 +241,10 @@ if ($existingConfig -match 'github-personal' -or $existingConfig -match 'github-
 
 Write-Header "Step 4 – Per-account .gitconfig files"
 
-$gitconfigPersonal = "$env:USERPROFILE\.gitconfig.personal"
-$gitconfigWork     = "$env:USERPROFILE\.gitconfig.work"
-$gitconfigAzure    = "$env:USERPROFILE\.gitconfig.azure"
+$gitconfigPersonal   = "$env:USERPROFILE\.gitconfig.personal"
+$gitconfigWork       = "$env:USERPROFILE\.gitconfig.work"
+$gitconfigAzure      = "$env:USERPROFILE\.gitconfig.azure"
+$gitconfigBtagPublic = "$env:USERPROFILE\.gitconfig.btag-public"
 
 function Write-GitConfig([string]$path, [string]$name, [string]$email, [string]$label) {
     if (Test-Path $path) {
@@ -240,9 +259,10 @@ function Write-GitConfig([string]$path, [string]$name, [string]$email, [string]$
     }
 }
 
-Write-GitConfig $gitconfigPersonal $personalName $personalEmail "Personal"
-Write-GitConfig $gitconfigWork     $workName     $workEmail     "Work"
-Write-GitConfig $gitconfigAzure    $azureName    $azureEmail    "Azure"
+Write-GitConfig $gitconfigPersonal   $personalName    $personalEmail    "Personal"
+Write-GitConfig $gitconfigWork       $workName        $workEmail        "Work"
+Write-GitConfig $gitconfigAzure      $azureName       $azureEmail       "Azure"
+Write-GitConfig $gitconfigBtagPublic $btagPublicName  $btagPublicEmail  "Bertrandt-public"
 
 # ── Step 5: Patch global ~/.gitconfig ────────────────────────────────────────
 
@@ -250,9 +270,10 @@ Write-Header "Step 5 – Global ~/.gitconfig (conditional includes)"
 
 $globalGitConfig = "$env:USERPROFILE\.gitconfig"
 
-$personalGitPath = To-GitPath $personalDir
-$workGitPath     = To-GitPath $workDir
-$azureGitPath    = To-GitPath $azureDir
+$personalGitPath   = To-GitPath $personalDir
+$workGitPath       = To-GitPath $workDir
+$azureGitPath      = To-GitPath $azureDir
+$btagPublicGitPath = To-GitPath $btagPublicDir
 
 $includeBlock = @"
 
@@ -265,6 +286,9 @@ $includeBlock = @"
 
 [includeIf "gitdir:$azureGitPath"]
     path = ~/.gitconfig.azure
+
+[includeIf "gitdir:$btagPublicGitPath"]
+    path = ~/.gitconfig.btag-public
 "@
 
 $existingGlobal = if (Test-Path $globalGitConfig) { Get-Content $globalGitConfig -Raw } else { '' }
@@ -293,7 +317,7 @@ if ($existingGlobal -match 'gitconfig\.personal' -or $existingGlobal -match 'git
 
 Write-Header "Step 6 – Project Directories"
 
-foreach ($dir in @($personalDir, $workDir, $azureDir)) {
+foreach ($dir in @($personalDir, $workDir, $azureDir, $btagPublicDir)) {
     if (-not (Test-Path $dir)) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
         Write-OK "Created $dir"
@@ -308,10 +332,11 @@ Write-Header "Step 7 – Add Public Keys to Each Platform"
 
 Write-Host "`nCopy each public key below and add it in the platform's SSH key settings.`n" -ForegroundColor White
 
+Write-Info "Bertrandt-public GitHub reuses the Personal GitHub key (no separate key to add)."
 foreach ($item in @(
-    @{ Label = 'Personal GitHub  → https://github.com/settings/ssh/new';         Key = "$keyPersonal.pub" },
-    @{ Label = 'Work GitHub      → https://github.com/settings/ssh/new (or GHE)'; Key = "$keyWork.pub" },
-    @{ Label = 'Azure DevOps     → https://dev.azure.com → User Settings → SSH'; Key = "$keyAzure.pub" }
+    @{ Label = 'Personal GitHub + Bertrandt-public  → https://github.com/settings/ssh/new'; Key = "$keyPersonal.pub" },
+    @{ Label = 'Work GitHub                         → https://github.com/settings/ssh/new (or GHE)'; Key = "$keyWork.pub" },
+    @{ Label = 'Azure DevOps                        → https://dev.azure.com → User Settings → SSH'; Key = "$keyAzure.pub" }
 )) {
     Write-Host "  $($item.Label)" -ForegroundColor Cyan
     if (Test-Path $item.Key) {
@@ -333,6 +358,9 @@ Write-Host @"
   Work GitHub / GHE:
     git clone git@github-work:ORG/repo.git
 
+  Bertrandt Public GitHub:
+    git clone git@github-btag-public:bertrandt-public/repo.git
+
   Azure DevOps:
     git clone git@azure-devops:ORG/PROJECT/_git/REPO
 
@@ -340,7 +368,7 @@ Write-Host @"
     git remote set-url origin git@github-personal:USERNAME/repo.git
 
   Test connections:
-    ssh -T git@github-personal
+    ssh -T git@github-personal   # also covers github-btag-public (same key)
     ssh -T git@github-work
     ssh -T git@azure-devops
 
